@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Noun Guess Game - Fun Word Guessing Game</title>
+<meta name="description" content="Noun Guess Game: Guess the secret word using hints like big, fast, heavy, rare, or expensive. Fun for kids and adults!">
+<meta name="keywords" content="noun guess game, word game, guessing game, fun web games, brain game">
+
+<!-- Schema.org structured data for Google -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Game",
+  "name": "Noun Guess Game",
+  "url": "https://yourusername.github.io/noun-guess-game/",
+  "description": "Guess the secret noun using hints like big, fast, heavy, rare, and expensive. Fun web game for all ages.",
+  "gamePlatform": "Web Browser",
+  "audience": {
+    "@type": "Audience",
+    "suggestedAge": "8+"
+  }
+}
+</script>
+
+<style>
+body { 
+  font-family: sans-serif; 
+  background:#fafafa; 
+  display:flex; 
+  justify-content:center; 
+  padding:20px; 
+  position:relative; 
+  margin:0;
+}
+
+#app { 
+  width:90%; 
+  max-width:330px; 
+  background:white; 
+  padding:20px; 
+  border-radius:16px; 
+  box-shadow:0 0 20px rgba(0,0,0,0.08); 
+  display:flex; 
+  flex-direction:column; 
+  align-items:center; 
+}
+
+h1 { 
+  font-size: 24px; 
+  margin-bottom: 10px; 
+  text-align: center; 
+}
+
+p { 
+  text-align:center; 
+  font-size:14px; 
+  color:#555; 
+  margin-bottom:20px; 
+}
+
+input { 
+  width:100%; 
+  padding:12px; 
+  border:1px solid #ccc; 
+  border-radius:8px; 
+  margin-bottom:10px; 
+  font-size:14px;
+}
+
+#sideButtons { 
+  display:flex; 
+  flex-direction:column; 
+  gap:6px; 
+  position:absolute; 
+  top:50px; 
+  right:50px; 
+  width:200px; 
+}
+
+button { 
+  padding:12px 14px; 
+  border-radius:8px; 
+  border:none; 
+  cursor:pointer; 
+  width:100%; 
+  font-size:14px;
+}
+
+#guessBtn { 
+  background:black; 
+  color:white; 
+  margin-bottom:6px; 
+}
+
+#newBtn, #giveupBtn, #listBtn, #instrBtn { 
+  background:#ddd; 
+}
+
+.msg { 
+  margin:12px 0; 
+  font-size:14px; 
+  color:#333; 
+  text-align:center; 
+}
+
+.guessBox { 
+  padding:8px 12px; 
+  border:1px solid #eee; 
+  border-radius:8px; 
+  margin-top:8px; 
+  font-size:14px; 
+}
+
+.correct { color:green; }
+.hint { color:#c68b00; }
+
+#textPanel { 
+  position:absolute; 
+  top:200px; 
+  right:50px; 
+  width:250px; 
+  max-height:400px; 
+  overflow:auto; 
+  background:white; 
+  border:1px solid #ccc; 
+  border-radius:12px; 
+  padding:10px; 
+  display:none; 
+  box-shadow:0 0 10px rgba(0,0,0,0.1); 
+}
+
+#counter { 
+  position:absolute; 
+  top:10px; 
+  left:10px; 
+  font-family:sans-serif; 
+  font-size:16px; 
+  font-weight:bold; 
+}
+
+/* Mobile responsive tweaks */
+@media (max-width: 500px) {
+  #sideButtons {
+    position: static;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap:5px;
+    margin-top:10px;
+  }
+  #textPanel {
+    position: static;
+    width: 100%;
+    max-height:200px;
+    margin-top:10px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="counter">Incorrect guesses: 0</div>
+
+<div id="app">
+  <h1>Noun Guess Game</h1>
+  <p>Try to guess the secret noun! If your guess is wrong, you'll get hints like "more big" or "less fast".</p>
+
+  <input id="guessInput" placeholder="Your guess" />
+  <button id="guessBtn">Guess</button>
+
+  <div id="sideButtons">
+    <button id="newBtn">New Game</button>
+    <button id="giveupBtn">Give Up</button>
+    <button id="listBtn">Show Nouns</button>
+    <button id="instrBtn">Instructions</button>
+  </div>
+
+  <div class="msg" id="msg"></div>
+  <div id="history"></div>
+  <div id="textPanel"></div>
+</div>
+
+<script>
+// Game logic (unchanged)
+const NOUNS = ["car","bicycle","elephant","mouse","airplane","rocket","chair","sofa","house","apartment","mountain","hill","river","stream","computer","phone","book","magazine","cake","bread","tiger","lion","dog","cat","whale","shark","boat","ship","truck","van","motorcycle","scooter","guitar","piano","violin","camera","television","fridge","oven","toaster","pen","pencil","hammer","screwdriver","saw","lamp","candle","tree","flower","bicycle-seat"];
+const ADJ=["big","fast","heavy","rare","expensive"];
+const SCORES = {"car":{big:40,fast:60,heavy:40,rare:10,expensive:40},"bicycle":{big:10,fast:20,heavy:10,rare:5,expensive:5},"elephant":{big:95,fast:25,heavy:100,rare:20,expensive:30},"mouse":{big:1,fast:10,heavy:1,rare:10,expensive:1},"airplane":{big:90,fast:95,heavy:85,rare:30,expensive:90},"rocket":{big:95,fast:100,heavy:80,rare:60,expensive:100},"chair":{big:20,fast:0,heavy:15,rare:5,expensive:10},"sofa":{big:40,fast:0,heavy:50,rare:5,expensive:20},"house":{big:100,fast:0,heavy:100,rare:25,expensive:90},"apartment":{big:100,fast:0,heavy:100,rare:20,expensive:85},"mountain":{big:100,fast:0,heavy:100,rare:10,expensive:0},"hill":{big:80,fast:0,heavy:80,rare:5,expensive:0},"river":{big:90,fast:20,heavy:30,rare:5,expensive:0},"stream":{big:30,fast:10,heavy:5,rare:5,expensive:0},"computer":{big:5,fast:0,heavy:5,rare:10,expensive:30},"phone":{big:3,fast:0,heavy:2,rare:10,expensive:25},"book":{big:5,fast:0,heavy:5,rare:5,expensive:5},"magazine":{big:5,fast:0,heavy:3,rare:5,expensive:3},"cake":{big:5,fast:0,heavy:5,rare:5,expensive:10},"bread":{big:3,fast:0,heavy:3,rare:5,expensive:2},"tiger":{big:60,fast:70,heavy:50,rare:30,expensive:20},"lion":{big:60,fast:70,heavy:55,rare:25,expensive:20},"dog":{big:20,fast:40,heavy:20,rare:10,expensive:10},"cat":{big:10,fast:35,heavy:10,rare:10,expensive:10},"whale":{big:100,fast:40,heavy:100,rare:30,expensive:50},"shark":{big:70,fast:80,heavy:40,rare:30,expensive:40},"boat":{big:45,fast:40,heavy:50,rare:15,expensive:35},"ship":{big:95,fast:45,heavy:95,rare:20,expensive:80},"truck":{big:70,fast:55,heavy:80,rare:10,expensive:60},"van":{big:50,fast:45,heavy:55,rare:10,expensive:35},"motorcycle":{big:20,fast:80,heavy:20,rare:10,expensive:20},"scooter":{big:10,fast:25,heavy:10,rare:5,expensive:5},"guitar":{big:10,fast:0,heavy:10,rare:10,expensive:40},"piano":{big:50,fast:0,heavy:80,rare:15,expensive:90},"violin":{big:5,fast:0,heavy:5,rare:10,expensive:50},"camera":{big:5,fast:0,heavy:3,rare:15,expensive:35},"television":{big:15,fast:0,heavy:20,rare:5,expensive:25},"fridge":{big:30,fast:0,heavy:40,rare:5,expensive:25},"oven":{big:25,fast:0,heavy:35,rare:5,expensive:20},"toaster":{big:5,fast:0,heavy:10,rare:5,expensive:5},"pen":{big:2,fast:0,heavy:1,rare:5,expensive:1},"pencil":{big:2,fast:0,heavy:1,rare:5,expensive:1},"hammer":{big:5,fast:0,heavy:10,rare:5,expensive:5},"screwdriver":{big:2,fast:0,heavy:3,rare:5,expensive:2},"saw":{big:5,fast:0,heavy:8,rare:5,expensive:5},"lamp":{big:5,fast:0,heavy:5,rare:5,expensive:10},"candle":{big:2,fast:0,heavy:1,rare:5,expensive:1},"tree":{big:40,fast:0,heavy:35,rare:5,expensive:0},"flower":{big:3,fast:0,heavy:1,rare:5,expensive:1},"bicycle-seat":{big:2,fast:0,heavy:2,rare:5,expensive:2}};
+
+let target;
+let incorrectCount = 0;
+
+function pick() { target = NOUNS[Math.floor(Math.random()*NOUNS.length)]; }
+
+function start() {
+    pick();
+    document.getElementById("msg").textContent = "";
+    document.getElementById("history").innerHTML = "";
+    document.getElementById("guessInput").value = "";
+    document.getElementById("textPanel").style.display = 'none';
+    incorrectCount = 0;
+    document.getElementById("counter").textContent = `Incorrect guesses: ${incorrectCount}`;
+}
+
+function guess() {
+    const g = document.getElementById("guessInput").value.trim().toLowerCase();
+    if(!g) return;
+
+    const match = NOUNS.find(n => n.toLowerCase() === g);
+    const msg = document.getElementById("msg");
+
+    if(!match){
+        msg.textContent = "Not in word list";
+        return;
+    }
+
+    if(match === target){
+        msg.textContent = "Correct!";
+        addHistory(match,"correct");
+        return;
+    }
+
+    incorrectCount++;
+    document.getElementById("counter").textContent = `Incorrect guesses: ${incorrectCount}`;
+
+    const diffs = ADJ.map(a=>({a,diff:SCORES[target][a]-SCORES[match][a],abs:Math.abs(SCORES[target][a]-SCORES[match][a])}))
+                     .sort((x,y)=>y.abs-x.abs);
+    const best = diffs[0];
+    const hint = (best.diff>0?"more ":"less ") + best.a;
+    msg.textContent = hint;
+    addHistory(match,hint);
+    document.getElementById("guessInput").value="";
+}
+
+function addHistory(word,res){
+    const box = document.createElement("div");
+    box.className = "guessBox";
+    box.classList.add(res==="correct"?"correct":"hint");
+    box.textContent = word+" → "+res;
+    document.getElementById("history").appendChild(box);
+}
+
+document.getElementById("guessBtn").onclick = guess;
+document.getElementById("newBtn").onclick = start;
+document.getElementById("giveupBtn").onclick = () => { document.getElementById("msg").textContent=`Answer: ${target}`; };
+document.getElementById("listBtn").onclick = () => {
+    const panel=document.getElementById("textPanel");
+    if(panel.style.display==='block'){ panel.style.display='none'; } 
+    else { panel.style.display='block'; panel.textContent="Nouns: "+NOUNS.join(", "); }
+};
+document.getElementById("instrBtn").onclick = () => {
+    const panel=document.getElementById("textPanel");
+    if(panel.style.display==='block'){ panel.style.display='none'; } 
+    else { panel.style.display='block'; panel.textContent="Guess the noun the site picked from the list. If wrong, you'll get a hint like 'more big' or 'less fast'. Keep guessing until correct!"; }
+};
+
+start();
+</script>
+</body>
+</html>
+
+
