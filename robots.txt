@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://swri-games-and-quizzes.github.io/word-guesser/sitemap.xml
